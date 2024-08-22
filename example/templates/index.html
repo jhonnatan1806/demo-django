@@ -1,0 +1,141 @@
+{% extends "layout/layout.html" %}
+
+{% block content %}
+<div class="container mx-auto p-4">
+    <!-- Sección de Tarjetas Informativas -->
+    {% include "layout/cards.html" %}
+
+<!-- Formulario para Subir y Seleccionar CVs -->
+<section class="bg-gray-100 p-6 rounded-lg shadow-md mb-8">
+
+    <!-- Formulario para subir CVs -->
+    <div class="bg-white shadow-xl p-10 rounded-lg max-w-lg mx-auto border-t-4 border-purple-300 mb-8">
+        <h2 class="text-3xl font-bold mb-6 text-center text-gray-800">Sube tu Curriculum en formato PDF</h2>
+        <form action="{% url 'upload_cv' %}" method="POST" enctype="multipart/form-data" class="space-y-6">
+            {% csrf_token %}
+            <div class="relative flex items-center justify-center bg-gray-100 rounded-md shadow-inner border-2 border-dashed border-gray-400 p-8 transition hover:bg-gray-200">
+                <input type="file" name="cv" accept=".pdf" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                <span class="text-gray-500">Arrastra tu archivo aquí o haz clic para subir</span>
+            </div>
+            <button type="submit" class="w-full bg-purple-500 text-white font-bold py-3 rounded-lg hover:bg-purple-600 transition-shadow shadow-lg hover:shadow-xl">Subir Curriculum</button>
+        </form>
+    </div>
+
+    <!-- División en dos columnas -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+
+        <!-- Columna Izquierda: Lista de CVs subidos -->
+        <div>
+            <h3 class="text-xl font-semibold text-gray-800 mb-4">CVs Guardados</h3>
+            <ul class="bg-white shadow-md rounded-lg p-4 space-y-4">
+                <!-- Supongamos que `cvs` es la lista de CVs obtenidos del modelo -->
+                {% for cv in cvs %}
+                <li class="flex justify-between items-center">
+                    <button onclick="loadCvText('{{ cv.id }}')" class="block w-full text-left text-gray-700 hover:bg-gray-100 p-3 rounded-lg">
+                        {{ cv.name }}
+                    </button>
+                    <form action="{% url 'delete_cv' cv.id %}" method="POST">
+                        {% csrf_token %}
+                        <button type="submit" class="text-red-500 hover:text-red-700 ml-4">
+                            Eliminar
+                        </button>
+                    </form>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <!-- Columna Derecha: Contenido del CV seleccionado -->
+        <div>
+            <h3 class="text-xl font-semibold text-gray-800 mb-4">Contenido del CV Seleccionado</h3>
+            <div class="bg-gray-100 p-4 rounded-lg shadow-inner h-64 overflow-auto">
+                <!-- Aquí se mostrará el texto extraído dinámicamente -->
+                <pre id="cv-text-display" class="whitespace-pre-wrap text-gray-700">
+                    Selecciona un CV de la lista para ver su contenido.
+                </pre>
+            </div>
+        </div>
+    </div>
+</section>
+
+
+    <!-- Sección para Escoger Páginas a Scrapear -->
+    <section class="bg-gray-100 p-6 rounded-lg shadow-md mb-8">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4">Páginas a Scrapear</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label class="block text-gray-700">Selecciona las páginas:</label>
+                <select multiple class="p-2 border rounded-md w-full">
+                    <option>LinkedIn</option>
+                    <option>Indeed</option>
+                    <option>Glassdoor</option>
+                    <option>Bumeran</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-gray-700">Ingrese un término de búsqueda:</label>
+                <input type="text" class="p-2 border rounded-md w-full" placeholder="Ej. Desarrollador Web">
+            </div>
+        </div>
+        <button class="mt-4 bg-green-600 text-white px-4 py-2 rounded-md">Iniciar Búsqueda</button>
+    </section>
+
+    <!-- Sección para Mostrar Resultados de Búsqueda -->
+    <section class="bg-gray-100 p-6 rounded-lg shadow-md mb-8">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4">Resultados de la Búsqueda</h2>
+        <!-- Aquí se mostrarán los links scrapeados -->
+        <ul class="list-decimal pl-5 mt-2 text-gray-700">
+            <li><a href="#" class="text-blue-600">Postulación 1 (LinkedIn)</a></li>
+            <li><a href="#" class="text-blue-600">Postulación 2 (Indeed)</a></li>
+            <li><a href="#" class="text-blue-600">Postulación 3 (Glassdoor)</a></li>
+        </ul>
+    </section>
+
+    <!-- Sección para Mostrar Resultados con Similitud de Cosenos -->
+    <section class="bg-gray-100 p-6 rounded-lg shadow-md">
+        <h2 class="text-xl font-semibold text-gray-800 mb-4">Mejores Coincidencias</h2>
+        <!-- Aquí se mostrarán los links con mayor similitud -->
+        <ul class="list-decimal pl-5 mt-2 text-gray-700">
+            <li><a href="#" class="text-blue-600">Postulación 1 (95% de coincidencia)</a></li>
+            <li><a href="#" class="text-blue-600">Postulación 2 (90% de coincidencia)</a></li>
+        </ul>
+    </section>
+
+<!-- Script para cargar dinámicamente el texto del CV seleccionado -->
+<script>
+    function loadCvText(cvId) {
+        fetch(`/get_cv_text/${cvId}/`)
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('cv-text-display').textContent = data.text || "No se pudo extraer el texto de este CV.";
+            })
+            .catch(error => console.error('Error al cargar el texto del CV:', error));
+    }
+</script>
+
+
+<!-- Script para alternar la visibilidad del texto completo -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const toggleBtn = document.getElementById('toggle-text-btn');
+        const textPreview = document.getElementById('pdf-text-preview');
+        const textFull = document.getElementById('pdf-text-full');
+
+        toggleBtn.addEventListener('click', function() {
+            if (textFull.classList.contains('hidden')) {
+                textPreview.classList.add('hidden');
+                textFull.classList.remove('hidden');
+                toggleBtn.textContent = 'Ver menos';
+            } else {
+                textFull.classList.add('hidden');
+                textPreview.classList.remove('hidden');
+                toggleBtn.textContent = 'Ver más';
+            }
+        });
+    });
+</script>
+</div>
+
+
+
+{% endblock %}

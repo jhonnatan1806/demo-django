@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Job Scraping Platform{% endblock %}</title>
+    <!-- Tailwind CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <!-- Puedes agregar estilos adicionales aquí -->
+</head>
+<body class="bg-gray-50 text-gray-800">
+    <!-- Navbar -->
+    <nav class="bg-gray-900 p-4 shadow-lg">
+        <div class="container mx-auto flex justify-between items-center">
+            <a href="{% url 'index' %}" class="text-purple-300 text-xl font-bold">JobScrape</a>
+            <ul class="flex space-x-4">
+                <li><a href="{% url 'index' %}" class="text-gray-200 hover:text-purple-400 transition-colors duration-300">Inicio</a></li>
+                <li><a href="{% url 'cv_list' %}" class="text-gray-200 hover:text-purple-400 transition-colors duration-300">Mis CVs</a></li>
+                <li><a href="{% url 'results' %}" class="text-gray-200 hover:text-purple-400 transition-colors duration-300">Resultados</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Contenido Principal -->
+    <main class="container mx-auto py-8">
+        {% block content %}
+        <!-- El contenido dinámico de cada página se renderiza aquí -->
+        {% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-900 text-gray-400 text-center py-4 mt-8">
+        <p>© 2024 JobScrape. Todos los derechos reservados.</p>
+    </footer>
+</body>
+</html>
