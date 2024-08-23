@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from .models import CV
 from django.http import JsonResponse
+from .utils import preprocess_text  # Importa la función desde utils.py
 
 def index(request):
     cvs = CV.objects.all()  # Obtener todos los CVs guardados
@@ -38,7 +39,7 @@ def upload_cv(request):
 
 def get_cv_text(request, cv_id):
     cv = CV.objects.get(id=cv_id)
-    return JsonResponse({'text': cv.extracted_text})
+    return JsonResponse({'text': cv.preprocessed_text})
 
 def delete_cv(request, cv_id):
     cv = get_object_or_404(CV, id=cv_id)
@@ -46,3 +47,6 @@ def delete_cv(request, cv_id):
         cv.delete()
         messages.success(request, f'El archivo {cv.name} ha sido eliminado.')
         return redirect('index')
+    
+
+
