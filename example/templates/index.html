@@ -128,15 +128,46 @@
     <ul class="list-decimal pl-5 mt-2 text-gray-700">
         {% for similarity, job in best_matches %}
         <li>
-            <a href="#" class="text-blue-600">{{ job.title }} - {{ job.location }} ({{ similarity|floatformat:2 }}% de coincidencia)</a>
+            <a href="javascript:void(0);" class="text-blue-600" onclick="toggleJobDetails('{{ job.id }}')">
+                {{ job.title }} - {{ job.location }} ({{ similarity|floatformat:2 }}% de coincidencia)
+            </a>
             <p class="text-sm text-gray-600">{{ job.salary }} - {{ job.employment_type }}</p>
-            <p class="text-sm text-gray-600">{{ job.description|truncatewords:20 }}</p>
+
+            <!-- Descripción truncada inicialmente -->
+            <p id="description-{{ job.id }}" class="text-sm text-gray-600">
+                {{ job.description|truncatewords:20 }}
+                <a href="javascript:void(0);" class="text-blue-600" onclick="toggleJobDetails('{{ job.id }}')">Ver más</a>
+            </p>
+
+            <!-- Descripción completa oculta inicialmente -->
+            <div id="full-description-{{ job.id }}" class="hidden">
+                <p class="text-sm text-gray-600">{{ job.description }}</p>
+                <a href="javascript:void(0);" class="text-blue-600" onclick="toggleJobDetails('{{ job.id }}')">Ver menos</a>
+            </div>
         </li>
         {% empty %}
         <li>No se encontraron coincidencias.</li>
         {% endfor %}
     </ul>
 </section>
+
+<!-- Script para manejar la expansión de los detalles -->
+<script>
+function toggleJobDetails(jobId) {
+    var shortDescription = document.getElementById("description-" + jobId);
+    var fullDescription = document.getElementById("full-description-" + jobId);
+
+    if (fullDescription.classList.contains("hidden")) {
+        // Mostrar la descripción completa
+        shortDescription.classList.add("hidden");
+        fullDescription.classList.remove("hidden");
+    } else {
+        // Ocultar la descripción completa y mostrar la truncada
+        shortDescription.classList.remove("hidden");
+        fullDescription.classList.add("hidden");
+    }
+}
+</script>
 
 <!-- Script para cargar dinámicamente el texto del CV seleccionado -->
 <script>
