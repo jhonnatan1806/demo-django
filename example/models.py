@@ -32,8 +32,9 @@ class CV(models.Model):
 class ScrapeResult(models.Model):
     source = models.CharField(max_length=255, verbose_name="Fuente")
     link = models.URLField(verbose_name="Enlace")
-    raw_text = models.TextField(verbose_name="Texto Original")
-    preprocessed_text = models.TextField(blank=True, null=True, verbose_name="Texto Preprocesado")
+    
+    # Asociamos un JobResult a cada ScrapeResult
+    job_result = models.ForeignKey('JobResult',null=True, on_delete=models.CASCADE, related_name='scrape_results', verbose_name="Resultado de Empleo")
 
     def __str__(self):
         return f"{self.source} - {self.link}"
@@ -41,9 +42,25 @@ class ScrapeResult(models.Model):
     class Meta:
         db_table = 'scrape_results'
     
+
+class JobResult(models.Model):
+    title = models.CharField(max_length=255, verbose_name="Título")
+    salary = models.CharField(max_length=100, verbose_name="Sueldo")
+    employment_type = models.CharField(max_length=100, verbose_name="Tipo de empleo")
+    location = models.CharField(max_length=255, verbose_name="Ubicación")
+    description = models.TextField(verbose_name="Descripción")
+    preprocessed_description = models.TextField(blank=True, null=True, verbose_name="Descripción Preprocesada")
+    
+
+    def __str__(self):
+        return f"{self.title} - {self.location}"
+    
+    class Meta:
+        db_table = 'job_results'
+
     def save(self, *args, **kwargs):
-        # Preprocesar el texto scrapeado
-        if self.raw_text and not self.preprocessed_text:
-            self.preprocessed_text = preprocess_text(self.raw_text)
+        # Preprocesar la descripción antes de guardar
+        if self.description and not self.preprocessed_description:
+            self.preprocessed_description = preprocess_text(self.description)
         
         super().save(*args, **kwargs)

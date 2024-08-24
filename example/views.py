@@ -1,12 +1,44 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from .models import CV
+from .models import CV, JobResult
 from django.http import JsonResponse
 from .utils import preprocess_text  # Importa la función desde utils.py
+from .webscrapping import JobScraper
+from .utils import compare_cv_with_jobs
 
 def index(request):
     cvs = CV.objects.all()  # Obtener todos los CVs guardados
-    return render(request, 'index.html', {'cvs': cvs})
+    job_results = []  # Inicializar una lista para almacenar los resultados de trabajos
+    best_matches = []  # Inicializar una lista para los mejores resultados de similitud
+
+    if request.method == 'POST':
+        if 'compare' in request.POST:
+            # Si se ha enviado la solicitud de comparación
+            selected_cv_id = request.POST.get('selected_cv')
+            best_matches = compare_cv_with_jobs(selected_cv_id)[:3]  # Obtener los 3 mejores resultados
+
+        else:
+            # Obtener los datos del formulario para scraping
+            selected_pages = request.POST.getlist('pages')
+            search_term = request.POST.get('search_term')
+
+            if not selected_pages or not search_term:
+                messages.error(request, "Debes seleccionar al menos una página y proporcionar un término de búsqueda.")
+                return redirect('index')
+
+            # Ejecutar el scraping
+            scraper = JobScraper()
+            for page in selected_pages:
+                if page == 'indeed':
+                    scraper.scrape_indeed(search_term)
+                # Aquí puedes agregar lógica para otras plataformas (LinkedIn, Glassdoor, etc.)
+
+            scraper.close_driver()
+
+            # Obtener los resultados del scraping desde la base de datos
+            job_results = JobResult.objects.all()
+
+    return render(request, 'index.html', {'cvs': cvs, 'job_results': job_results, 'best_matches': best_matches})
 
 def cv(request):
     return render(request, 'cvs.html')

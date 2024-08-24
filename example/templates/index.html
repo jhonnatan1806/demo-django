@@ -60,46 +60,83 @@
 
 
     <!-- Sección para Escoger Páginas a Scrapear -->
-    <section class="bg-gray-100 p-6 rounded-lg shadow-md mb-8">
-        <h2 class="text-xl font-semibold text-gray-800 mb-4">Páginas a Scrapear</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
+<section class="bg-gray-100 p-6 rounded-lg shadow-md mb-8">
+    <h2 class="text-xl font-semibold text-gray-800 mb-4">Páginas a Scrapear</h2>
+    <form method="POST" action="{% url 'index' %}">
+        {% csrf_token %}
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <!-- Columna Izquierda: Selección de páginas y término de búsqueda -->
+            <div class="col-span-1">
                 <label class="block text-gray-700">Selecciona las páginas:</label>
-                <select multiple class="p-2 border rounded-md w-full">
-                    <option>LinkedIn</option>
-                    <option>Indeed</option>
-                    <option>Glassdoor</option>
-                    <option>Bumeran</option>
+                <select name="pages" multiple class="p-2 border rounded-md w-full mb-4">
+                    <option value="linkedin">LinkedIn</option>
+                    <option value="indeed">Indeed</option>
+                    <option value="glassdoor">Glassdoor</option>
+                    <option value="bumeran">Bumeran</option>
                 </select>
-            </div>
-            <div>
                 <label class="block text-gray-700">Ingrese un término de búsqueda:</label>
-                <input type="text" class="p-2 border rounded-md w-full" placeholder="Ej. Desarrollador Web">
+                <input type="text" name="search_term" class="p-2 border rounded-md w-full mb-4" placeholder="Ej. Desarrollador Web">
+                <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded-md w-full">Iniciar Búsqueda</button>
+            </div>
+
+            <!-- Columna Derecha: Resultados de las Postulaciones -->
+            <div class="col-span-2">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">Resultados de la Búsqueda</h3>
+                <div class="grid grid-cols-1 gap-4">
+                    {% for job in job_results %}
+                    <div class="bg-white shadow-md rounded-lg p-4">
+                        <h4 class="text-lg font-bold text-gray-800">{{ job.title }}</h4>
+                        <p class="text-sm text-gray-600">{{ job.location }} - {{ job.salary }}</p>
+                        <p class="text-sm text-gray-600">{{ job.employment_type }}</p>
+                        <p class="text-sm text-gray-700 mt-2">{{ job.description|truncatewords:20 }}</p>
+                        <a href="#" class="text-blue-600 hover:underline">Ver más detalles</a>
+                    </div>
+                    {% empty %}
+                    <p class="text-gray-600">No se encontraron resultados.</p>
+                    {% endfor %}
+                </div>
             </div>
         </div>
-        <button class="mt-4 bg-green-600 text-white px-4 py-2 rounded-md">Iniciar Búsqueda</button>
-    </section>
+    </form>
+</section>
 
-    <!-- Sección para Mostrar Resultados de Búsqueda -->
-    <section class="bg-gray-100 p-6 rounded-lg shadow-md mb-8">
-        <h2 class="text-xl font-semibold text-gray-800 mb-4">Resultados de la Búsqueda</h2>
-        <!-- Aquí se mostrarán los links scrapeados -->
-        <ul class="list-decimal pl-5 mt-2 text-gray-700">
-            <li><a href="#" class="text-blue-600">Postulación 1 (LinkedIn)</a></li>
-            <li><a href="#" class="text-blue-600">Postulación 2 (Indeed)</a></li>
-            <li><a href="#" class="text-blue-600">Postulación 3 (Glassdoor)</a></li>
-        </ul>
-    </section>
 
-    <!-- Sección para Mostrar Resultados con Similitud de Cosenos -->
-    <section class="bg-gray-100 p-6 rounded-lg shadow-md">
-        <h2 class="text-xl font-semibold text-gray-800 mb-4">Mejores Coincidencias</h2>
-        <!-- Aquí se mostrarán los links con mayor similitud -->
-        <ul class="list-decimal pl-5 mt-2 text-gray-700">
-            <li><a href="#" class="text-blue-600">Postulación 1 (95% de coincidencia)</a></li>
-            <li><a href="#" class="text-blue-600">Postulación 2 (90% de coincidencia)</a></li>
-        </ul>
-    </section>
+    <!-- Sección para Seleccionar CV y Comparar -->
+<section class="bg-gray-100 p-6 rounded-lg shadow-md mb-8">
+    <h2 class="text-xl font-semibold text-gray-800 mb-4">Comparar CV con Postulaciones</h2>
+    <form method="POST" action="{% url 'index' %}">
+        {% csrf_token %}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+                <label class="block text-gray-700">Selecciona un CV:</label>
+                <select name="selected_cv" class="p-2 border rounded-md w-full">
+                    {% for cv in cvs %}
+                    <option value="{{ cv.id }}">{{ cv.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="flex items-end">
+                <button type="submit" name="compare" value="compare" class="bg-blue-600 text-white px-4 py-2 rounded-md w-full">Comparar</button>
+            </div>
+        </div>
+    </form>
+</section>
+
+<!-- Sección para Mostrar los Mejores Resultados -->
+<section class="bg-gray-100 p-6 rounded-lg shadow-md">
+    <h2 class="text-xl font-semibold text-gray-800 mb-4">Mejores Coincidencias</h2>
+    <ul class="list-decimal pl-5 mt-2 text-gray-700">
+        {% for similarity, job in best_matches %}
+        <li>
+            <a href="#" class="text-blue-600">{{ job.title }} - {{ job.location }} ({{ similarity|floatformat:2 }}% de coincidencia)</a>
+            <p class="text-sm text-gray-600">{{ job.salary }} - {{ job.employment_type }}</p>
+            <p class="text-sm text-gray-600">{{ job.description|truncatewords:20 }}</p>
+        </li>
+        {% empty %}
+        <li>No se encontraron coincidencias.</li>
+        {% endfor %}
+    </ul>
+</section>
 
 <!-- Script para cargar dinámicamente el texto del CV seleccionado -->
 <script>
