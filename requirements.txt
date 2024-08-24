@@ -28,6 +28,7 @@ preshed==3.0.9
 pydantic==2.8.2
 pydantic_core==2.20.1
 Pygments==2.18.0
+PyPDF2==3.0.1
 regex==2024.7.24
 requests==2.32.3
 rich==13.7.1
