@@ -50,6 +50,7 @@ class JobResult(models.Model):
     location = models.CharField(max_length=255, verbose_name="Ubicación")
     description = models.TextField(verbose_name="Descripción")
     preprocessed_description = models.TextField(blank=True, null=True, verbose_name="Descripción Preprocesada")
+    link = models.URLField(null=True,verbose_name="Enlace de Postulación")
     
 
     def __str__(self):

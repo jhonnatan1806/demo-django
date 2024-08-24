@@ -39,7 +39,7 @@ class JobScraper:
         postulaciones = self.driver.find_elements(By.CLASS_NAME, 'css-5lfssm.eu4oa1w0')
 
         # Inicializamos las listas para almacenar la información
-        titulos, sueldos, tipo_empleos, ubicaciones, descripciones = [], [], [], [], []
+        titulos, sueldos, tipo_empleos, ubicaciones, descripciones , links_postulacion = [], [], [], [], [],[]
 
         for i in range(1, 20):
             try:
@@ -84,13 +84,20 @@ class JobScraper:
                     descripcion = "No especificado"
                 descripciones.append(descripcion)
 
+                try:
+                    link_postulacion = self.driver.current_url
+                except:
+                    link_postulacion = "No especificado"
+                links_postulacion.append(link_postulacion)
+
                 
                 job_result = JobResult(
                                 title=titulo,
                                 salary=sueldo,
                                 employment_type=tipo_empleo,
                                 location=ubicacion,
-                                description=descripcion
+                                description=descripcion,
+                                link=link_postulacion
                             )
                 job_result.save()  # Aquí se guarda la instancia en la base de datos.
 

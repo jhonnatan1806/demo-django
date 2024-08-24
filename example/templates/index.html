@@ -128,6 +128,7 @@
     <ul class="list-decimal pl-5 mt-2 text-gray-700">
         {% for similarity, job in best_matches %}
         <li>
+            <!-- Título y ubicación con la similitud -->
             <a href="javascript:void(0);" class="text-blue-600" onclick="toggleJobDetails('{{ job.id }}')">
                 {{ job.title }} - {{ job.location }} ({{ similarity|floatformat:2 }}% de coincidencia)
             </a>
@@ -144,6 +145,11 @@
                 <p class="text-sm text-gray-600">{{ job.description }}</p>
                 <a href="javascript:void(0);" class="text-blue-600" onclick="toggleJobDetails('{{ job.id }}')">Ver menos</a>
             </div>
+
+            <!-- Enlace a la postulación -->
+            <p class="text-sm text-gray-600 mt-2">
+                <a href="{{ job.link }}" target="_blank" class="text-blue-600 hover:underline">Ir a la postulación</a>
+            </p>
         </li>
         {% empty %}
         <li>No se encontraron coincidencias.</li>
